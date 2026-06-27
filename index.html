@@ -1,444 +1,75 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-  <meta name="theme-color" content="#ffffff" />
-  <title>Sticker Ekranı</title>
-
-  <style>
-    :root {
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-    }
-
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html,
-    body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-      background: #ffffff;
-      overscroll-behavior: none;
-    }
-
-    body {
-      position: fixed;
-      inset: 0;
-      font-family:
-        Inter,
-        ui-rounded,
-        "SF Pro Rounded",
-        "Arial Rounded MT Bold",
-        system-ui,
-        sans-serif;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
-    }
-
-    #app {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      background: #ffffff;
-      isolation: isolate;
-    }
-
-    #sticker-layer {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    #tap-hint {
-      position: absolute;
-      left: 50%;
-      bottom: calc(18px + var(--safe-bottom));
-      z-index: 100000;
-      transform: translateX(-50%);
-      margin: 0;
-      color: #111111;
-      font-size: clamp(17px, 5vw, 22px);
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      white-space: nowrap;
-      pointer-events: none;
-      transition:
-        opacity 220ms ease,
-        transform 220ms ease;
-    }
-
-    #tap-hint.hidden {
-      opacity: 0;
-      transform: translateX(-50%) translateY(12px) scale(0.94);
-    }
-
-    .sticker {
-      --rotation: 0deg;
-      --scale: 1;
-      --x: 0px;
-      --y: 0px;
-
-      position: absolute;
-      left: 0;
-      top: 0;
-      max-width: min(82vw, 390px);
-      padding: 13px 19px 14px;
-      border: 4px solid #111111;
-      border-radius: 18px;
-      color: #111111;
-      background: #ffffff;
-      box-shadow:
-        0 5px 0 #111111,
-        0 11px 24px rgba(0, 0, 0, 0.15);
-      font-size: clamp(23px, 8vw, 48px);
-      font-weight: 1000;
-      line-height: 0.96;
-      letter-spacing: -0.045em;
-      text-align: center;
-      white-space: nowrap;
-      transform:
-        translate3d(var(--x), var(--y), 0)
-        rotate(var(--rotation))
-        scale(var(--scale));
-      transform-origin: center;
-      will-change: transform;
-      animation: sticker-pop 420ms cubic-bezier(.16, 1.35, .34, 1) both;
-    }
-
-    .sticker::before,
-    .sticker::after {
-      content: "";
-      position: absolute;
-      z-index: -1;
-      background: inherit;
-      border: inherit;
-      box-shadow: inherit;
-    }
-
-    .sticker::before {
-      width: 22px;
-      height: 22px;
-      left: -12px;
-      top: 20%;
-      border-radius: 7px;
-      transform: rotate(24deg);
-    }
-
-    .sticker::after {
-      width: 18px;
-      height: 18px;
-      right: -10px;
-      bottom: 17%;
-      border-radius: 50%;
-    }
-
-    .sticker.round {
-      border-radius: 999px;
-      padding-inline: 23px;
-    }
-
-    .sticker.burst {
-      border-radius: 7px 24px 8px 26px;
-    }
-
-    .sticker.big {
-      font-size: clamp(30px, 11vw, 62px);
-      padding: 15px 22px 17px;
-    }
-
-    .spark {
-      position: absolute;
-      z-index: 99999;
-      width: 10px;
-      height: 10px;
-      border: 2px solid #111111;
-      border-radius: 3px;
-      pointer-events: none;
-      transform: translate(-50%, -50%);
-      animation: spark-fly 520ms ease-out forwards;
-    }
-
-    @keyframes sticker-pop {
-      0% {
-        opacity: 0;
-        transform:
-          translate3d(var(--x), var(--y), 0)
-          rotate(calc(var(--rotation) - 10deg))
-          scale(0.18);
-      }
-
-      58% {
-        opacity: 1;
-        transform:
-          translate3d(var(--x), var(--y), 0)
-          rotate(calc(var(--rotation) + 4deg))
-          scale(calc(var(--scale) * 1.12));
-      }
-
-      100% {
-        opacity: 1;
-        transform:
-          translate3d(var(--x), var(--y), 0)
-          rotate(var(--rotation))
-          scale(var(--scale));
-      }
-    }
-
-    @keyframes spark-fly {
-      from {
-        opacity: 1;
-        transform:
-          translate(-50%, -50%)
-          rotate(0deg)
-          scale(1);
-      }
-
-      to {
-        opacity: 0;
-        transform:
-          translate(
-            calc(-50% + var(--dx)),
-            calc(-50% + var(--dy))
-          )
-          rotate(var(--spin))
-          scale(0.25);
-      }
-    }
-
-    #app.shake-1 {
-      animation: shake-1 190ms linear;
-    }
-
-    #app.shake-2 {
-      animation: shake-2 220ms linear;
-    }
-
-    #app.shake-3 {
-      animation: shake-3 250ms linear;
-    }
-
-    @keyframes shake-1 {
-      0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
-      20% { transform: translate3d(-5px, 3px, 0) rotate(-0.35deg); }
-      40% { transform: translate3d(5px, -3px, 0) rotate(0.35deg); }
-      60% { transform: translate3d(-3px, -2px, 0) rotate(-0.2deg); }
-      80% { transform: translate3d(3px, 2px, 0) rotate(0.2deg); }
-    }
-
-    @keyframes shake-2 {
-      0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
-      15% { transform: translate3d(-8px, 4px, 0) rotate(-0.5deg); }
-      30% { transform: translate3d(7px, -5px, 0) rotate(0.55deg); }
-      45% { transform: translate3d(-6px, -3px, 0) rotate(-0.4deg); }
-      60% { transform: translate3d(6px, 4px, 0) rotate(0.4deg); }
-      75% { transform: translate3d(-3px, 2px, 0) rotate(-0.2deg); }
-      90% { transform: translate3d(2px, -1px, 0) rotate(0.15deg); }
-    }
-
-    @keyframes shake-3 {
-      0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
-      12% { transform: translate3d(-11px, 6px, 0) rotate(-0.8deg); }
-      24% { transform: translate3d(10px, -7px, 0) rotate(0.8deg); }
-      36% { transform: translate3d(-9px, -5px, 0) rotate(-0.65deg); }
-      48% { transform: translate3d(9px, 6px, 0) rotate(0.65deg); }
-      60% { transform: translate3d(-7px, 4px, 0) rotate(-0.45deg); }
-      72% { transform: translate3d(6px, -4px, 0) rotate(0.4deg); }
-      84% { transform: translate3d(-3px, 2px, 0) rotate(-0.2deg); }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .sticker {
-        animation-duration: 160ms;
-      }
-
-      #app.shake-1,
-      #app.shake-2,
-      #app.shake-3 {
-        animation-duration: 1ms;
-      }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#fffdf7">
+<title>Nasıl Olmuş?</title>
+<style>
+:root{--ink:#111;--paper:#fffdf7;--safe:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--paper);overscroll-behavior:none}
+body{position:fixed;inset:0;font-family:Inter,ui-rounded,"Arial Rounded MT Bold",system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#app{position:absolute;inset:0;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 50% 110%,rgba(255,220,88,.28),transparent 43%),var(--paper);transition:background .25s ease}
+#app:before{content:"";position:absolute;inset:-40%;z-index:-3;opacity:0;background:repeating-linear-gradient(135deg,transparent 0 24px,rgba(17,17,17,.035) 24px 27px);transform:rotate(-4deg) scale(1.2);transition:opacity .5s ease}
+#app.awake:before{opacity:1}
+.layer{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+#ambient{z-index:0}#stickers{z-index:10}#particles{z-index:20000}#effects{z-index:30000}
+#hint{position:absolute;left:50%;bottom:calc(22px + var(--safe));z-index:50000;transform:translateX(-50%);margin:0;color:var(--ink);font-size:clamp(17px,5vw,22px);font-weight:1000;letter-spacing:.11em;white-space:nowrap;pointer-events:none;animation:breathe 1.5s ease-in-out infinite;transition:opacity .18s ease,transform .18s ease}
+#hint.hide{opacity:0;transform:translateX(-50%) translateY(14px) scale(.9);animation:none}
+@keyframes breathe{50%{transform:translateX(-50%) scale(1.055)}}
+.blob{position:absolute;width:var(--s);height:var(--s);left:var(--l);top:var(--t);border:3px solid var(--ink);border-radius:43% 57% 62% 38%/52% 38% 62% 48%;background:var(--c);opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(var(--r));animation:blob .7s cubic-bezier(.16,1.2,.35,1) forwards}
+@keyframes blob{to{opacity:.28;transform:translate(-50%,-50%) scale(1) rotate(var(--r))}}
+.sticker{--x:0px;--y:0px;--r:0deg;--sc:1;position:absolute;left:0;top:0;max-width:min(88vw,430px);padding:13px 19px 15px;border:4px solid var(--ink);color:var(--ink);background:var(--fill);box-shadow:0 5px 0 var(--ink),0 13px 24px rgba(0,0,0,.14);font-size:clamp(23px,8.2vw,50px);font-weight:1000;line-height:.94;letter-spacing:-.05em;text-align:center;white-space:nowrap;transform:translate3d(var(--x),var(--y),0) rotate(var(--r)) scale(var(--sc));transform-origin:center;animation:pop .42s cubic-bezier(.16,1.38,.3,1) both;will-change:transform}
+.sticker.small{padding:10px 15px 11px;font-size:clamp(17px,5.6vw,31px);letter-spacing:-.035em}.sticker.mega{padding:17px 24px 19px;font-size:clamp(34px,12vw,72px);letter-spacing:-.065em}
+.round{border-radius:999px}.soft{border-radius:22px 11px 25px 14px}.sharp{border-radius:5px 24px 6px 25px}.cloud{border-radius:46% 54% 48% 52%/56% 43% 57% 44%;padding-inline:25px}.tape{border-radius:4px;box-shadow:0 4px 0 var(--ink),0 10px 22px rgba(0,0,0,.12)}
+.tape:before,.tape:after{content:"";position:absolute;top:-12px;width:38px;height:20px;border:2px solid rgba(17,17,17,.5);background:rgba(255,255,255,.58);backdrop-filter:blur(2px)}.tape:before{left:12%;transform:rotate(-9deg)}.tape:after{right:12%;transform:rotate(8deg)}
+.stamp{border-style:dashed;border-width:5px;background:#fff4f4!important;color:#db1e45;text-shadow:2px 2px 0 #fff;box-shadow:0 0 0 4px #db1e45,0 12px 24px rgba(0,0,0,.13)}
+.tiny{display:block;margin-top:7px;font-size:.28em;line-height:1;letter-spacing:.13em;text-transform:uppercase}
+@keyframes pop{0%{opacity:0;transform:translate3d(var(--x),calc(var(--y) + 20px),0) rotate(calc(var(--r) - 12deg)) scale(.12);filter:blur(5px)}58%{opacity:1;transform:translate3d(var(--x),calc(var(--y) - 5px),0) rotate(calc(var(--r) + 4deg)) scale(calc(var(--sc)*1.15));filter:blur(0)}100%{opacity:1;transform:translate3d(var(--x),var(--y),0) rotate(var(--r)) scale(var(--sc));filter:blur(0)}}
+.emoji,.confetti{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);animation:fly .8s cubic-bezier(.12,.72,.2,1) forwards}.emoji{font-size:var(--s);line-height:1;filter:drop-shadow(0 3px 0 rgba(17,17,17,.22))}.confetti{width:var(--w);height:var(--h);border:2px solid var(--ink);border-radius:2px;background:var(--c)}
+@keyframes fly{0%{opacity:1;transform:translate(-50%,-50%) rotate(0) scale(.35)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--spin)) scale(1.2)}}
+.ring{position:absolute;left:var(--x);top:var(--y);width:24px;height:24px;border:5px solid var(--c);border-radius:50%;transform:translate(-50%,-50%) scale(.2);animation:ring .52s ease-out forwards}
+@keyframes ring{to{width:190px;height:190px;opacity:0;transform:translate(-50%,-50%) scale(1)}}
+.flash{position:absolute;inset:0;background:var(--c);mix-blend-mode:multiply;animation:flash .26s ease-out forwards}@keyframes flash{from{opacity:.4}to{opacity:0}}
+.verdict{position:absolute;inset:0;z-index:40000;display:grid;place-items:center;padding:18px;background:rgba(255,253,247,.18);backdrop-filter:blur(2px);animation:vLayer 1.1s ease forwards}
+.vcard{max-width:92vw;padding:22px 24px 25px;border:7px solid var(--ink);border-radius:18px 35px 16px 28px;color:var(--ink);background:var(--fill);box-shadow:0 9px 0 var(--ink),0 24px 50px rgba(0,0,0,.22);font-size:clamp(35px,13vw,78px);font-weight:1000;line-height:.86;letter-spacing:-.075em;text-align:center;text-transform:uppercase;transform:rotate(var(--r));animation:vCard .95s cubic-bezier(.15,1.45,.24,1) forwards}.vcard small{display:block;margin-bottom:10px;font-size:.2em;line-height:1;letter-spacing:.2em}
+@keyframes vLayer{0%,82%{opacity:1}100%{opacity:0}}@keyframes vCard{0%{transform:rotate(calc(var(--r) - 22deg)) scale(.05)}62%{transform:rotate(calc(var(--r) + 3deg)) scale(1.13)}100%{transform:rotate(var(--r)) scale(1)}}
+#app.shake1{animation:shake1 .18s linear}#app.shake2{animation:shake2 .23s linear}#app.shake3{animation:shake3 .28s linear}#app.squish{animation:squish .26s ease}
+@keyframes shake1{20%{transform:translate(-5px,3px) rotate(-.35deg)}40%{transform:translate(5px,-3px) rotate(.35deg)}60%{transform:translate(-3px,-2px)}80%{transform:translate(3px,2px)}}
+@keyframes shake2{15%{transform:translate(-8px,4px) rotate(-.5deg)}30%{transform:translate(7px,-5px) rotate(.55deg)}45%{transform:translate(-6px,-3px)}60%{transform:translate(6px,4px)}75%{transform:translate(-3px,2px)}}
+@keyframes shake3{12%{transform:translate(-12px,7px) rotate(-.9deg)}24%{transform:translate(11px,-8px) rotate(.9deg)}36%{transform:translate(-10px,-6px)}48%{transform:translate(10px,7px)}60%{transform:translate(-8px,5px)}72%{transform:translate(7px,-5px)}}
+@keyframes squish{35%{transform:scale(1.035,.97) rotate(-.3deg)}70%{transform:scale(.985,1.02) rotate(.25deg)}}
+</style>
 </head>
-
 <body>
-  <main id="app" aria-label="Dokununca sticker oluşturan ekran">
-    <div id="sticker-layer"></div>
-    <p id="tap-hint">EKRANA BAS</p>
-  </main>
-
-  <script>
-    (() => {
-      "use strict";
-
-      const app = document.getElementById("app");
-      const layer = document.getElementById("sticker-layer");
-      const hint = document.getElementById("tap-hint");
-
-      const messages = [
-        "SÜPER",
-        "EFSANEEE",
-        "MÜKEMMEL",
-        "OMGGGGG",
-        "ÇOOOK İYİ",
-        "YOK ARTIK",
-        "İNANILMAZ",
-        "VAYYYY",
-        "AŞIRI İYİ",
-        "10/10",
-        "HARİKA",
-        "ŞAKA MI BU",
-        "OHA",
-        "BAYILDIM",
-        "ÇOK GÜZEL",
-        "EFSANEVİ",
-        "TAM OLDU",
-        "BU NE BÖYLE",
-        "MUAZZAM",
-        "WOWWW"
-      ];
-
-      const colors = [
-        "#FFDD57",
-        "#FF6B9A",
-        "#7BE7FF",
-        "#A8FF78",
-        "#C7A8FF",
-        "#FF9F43",
-        "#F8FF74",
-        "#FF7C7C",
-        "#83FFD0",
-        "#8BB8FF"
-      ];
-
-      const shapes = ["", "round", "burst"];
-      let stickerCount = 0;
-      let lastMessage = "";
-
-      const random = (min, max) => Math.random() * (max - min) + min;
-      const pick = (items) => items[Math.floor(Math.random() * items.length)];
-
-      function getMessage() {
-        let next = pick(messages);
-
-        if (messages.length > 1) {
-          while (next === lastMessage) {
-            next = pick(messages);
-          }
-        }
-
-        lastMessage = next;
-        return next;
-      }
-
-      function clamp(value, min, max) {
-        return Math.min(Math.max(value, min), max);
-      }
-
-      function shakeScreen() {
-        const className = `shake-${Math.ceil(random(0, 3))}`;
-
-        app.classList.remove("shake-1", "shake-2", "shake-3");
-        void app.offsetWidth;
-        app.classList.add(className);
-
-        window.setTimeout(() => {
-          app.classList.remove(className);
-        }, 280);
-      }
-
-      function vibrate() {
-        if ("vibrate" in navigator) {
-          navigator.vibrate(stickerCount % 5 === 0 ? [28, 20, 35] : 28);
-        }
-      }
-
-      function makeSparks(x, y, color) {
-        const amount = Math.floor(random(5, 9));
-
-        for (let i = 0; i < amount; i += 1) {
-          const spark = document.createElement("span");
-          const angle = (Math.PI * 2 * i) / amount + random(-0.35, 0.35);
-          const distance = random(45, 95);
-
-          spark.className = "spark";
-          spark.style.left = `${x}px`;
-          spark.style.top = `${y}px`;
-          spark.style.background = color;
-          spark.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
-          spark.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
-          spark.style.setProperty("--spin", `${random(-180, 180)}deg`);
-
-          layer.appendChild(spark);
-          window.setTimeout(() => spark.remove(), 600);
-        }
-      }
-
-      function createSticker(clientX, clientY) {
-        stickerCount += 1;
-
-        if (stickerCount === 1) {
-          hint.classList.add("hidden");
-        }
-
-        const sticker = document.createElement("div");
-        const message = getMessage();
-        const color = pick(colors);
-        const shape = pick(shapes);
-        const rotation = random(-17, 17);
-        const scale = random(0.86, 1.12);
-
-        sticker.className = `sticker ${shape} ${message.length <= 5 ? "big" : ""}`.trim();
-        sticker.textContent = message;
-        sticker.style.background = color;
-        sticker.style.zIndex = String(stickerCount);
-
-        layer.appendChild(sticker);
-
-        const rect = sticker.getBoundingClientRect();
-        const padding = 10;
-        const bottomReserved = 18;
-        const maxX = window.innerWidth - rect.width - padding;
-        const maxY = window.innerHeight - rect.height - bottomReserved;
-
-        const jitterX = random(-34, 34);
-        const jitterY = random(-26, 26);
-        const x = clamp(clientX - rect.width / 2 + jitterX, padding, Math.max(padding, maxX));
-        const y = clamp(clientY - rect.height / 2 + jitterY, padding, Math.max(padding, maxY));
-
-        sticker.style.setProperty("--x", `${x}px`);
-        sticker.style.setProperty("--y", `${y}px`);
-        sticker.style.setProperty("--rotation", `${rotation}deg`);
-        sticker.style.setProperty("--scale", scale.toFixed(2));
-
-        makeSparks(clientX, clientY, color);
-        shakeScreen();
-        vibrate();
-      }
-
-      app.addEventListener("pointerdown", (event) => {
-        if (event.pointerType === "mouse" && event.button !== 0) {
-          return;
-        }
-
-        event.preventDefault();
-        createSticker(event.clientX, event.clientY);
-      }, { passive: false });
-
-      app.addEventListener("contextmenu", (event) => {
-        event.preventDefault();
-      });
-
-      document.addEventListener("dblclick", (event) => {
-        event.preventDefault();
-      }, { passive: false });
-    })();
-  </script>
+<main id="app"><div id="ambient" class="layer"></div><div id="stickers" class="layer"></div><div id="particles" class="layer"></div><div id="effects" class="layer"></div><p id="hint">EKRANA BAS</p></main>
+<script>
+(()=>{"use strict";
+const app=document.querySelector('#app'),ambient=document.querySelector('#ambient'),stickers=document.querySelector('#stickers'),particles=document.querySelector('#particles'),effects=document.querySelector('#effects'),hint=document.querySelector('#hint');
+const msgs=['mukkkkemmel','effffsane','OHAAA','COK IYI','SUPERRRRRRR','EFFFFSANE','COOOOOK IYI','BAYILDIM','OMGGGGG','WOOWWWWW','HARIKA','10000000000/10','MUAAZZAM','BAYILIYORUM','EFFFSANEVI'];
+const verdicts=msgs;
+const colors=['#ffdc58','#ff75a8','#78e5ff','#a4ff78','#c6a7ff','#ff9d43','#f5ff72','#ff7c7c','#7effd2','#8bb8ff','#fff','#ffb4e5'],emojis=['✨','💥','⭐','💖','🫶','😭','🔥','🌟','💅','🎀'],shapes=['round','soft','sharp','cloud','tape'];
+let count=0,last='',audio=null,hold=null;
+const rnd=(a,b)=>Math.random()*(b-a)+a,pick=a=>a[Math.floor(Math.random()*a.length)],clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+function message(){let n=pick(msgs);while(n===last)n=pick(msgs);last=n;return n}
+function ctx(){if(!audio){const A=window.AudioContext||window.webkitAudioContext;if(A)audio=new A}return audio}
+function pop(strength=1){const c=ctx();if(!c)return;if(c.state==='suspended')c.resume();const o=c.createOscillator(),g=c.createGain(),n=c.currentTime;o.type=count%5===0?'triangle':'sine';o.frequency.setValueAtTime(220+count*6,n);o.frequency.exponentialRampToValueAtTime(520+rnd(0,180),n+.08);g.gain.setValueAtTime(.0001,n);g.gain.exponentialRampToValueAtTime(.06*strength,n+.01);g.gain.exponentialRampToValueAtTime(.0001,n+.12);o.connect(g);g.connect(c.destination);o.start(n);o.stop(n+.13)}
+function fanfare(){[392,523,659].forEach((f,i)=>setTimeout(()=>{const c=ctx();if(!c)return;const o=c.createOscillator(),g=c.createGain(),n=c.currentTime;o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.0001,n);g.gain.exponentialRampToValueAtTime(.05,n+.01);g.gain.exponentialRampToValueAtTime(.0001,n+.18);o.connect(g);g.connect(c.destination);o.start(n);o.stop(n+.19)},i*80))}
+function buzz(p=28){if('vibrate'in navigator)navigator.vibrate(p)}
+function motion(cls,d){app.classList.remove('shake1','shake2','shake3','squish');void app.offsetWidth;app.classList.add(cls);setTimeout(()=>app.classList.remove(cls),d)}
+function blob(){const e=document.createElement('i');e.className='blob';e.style.cssText=`--s:${rnd(130,280)}px;--l:${rnd(4,96)}%;--t:${rnd(3,97)}%;--r:${rnd(-90,90)}deg;--c:${pick(colors)}`;ambient.append(e);const all=ambient.querySelectorAll('.blob');if(all.length>8)all[0].remove()}
+function flash(c){const e=document.createElement('i');e.className='flash';e.style.setProperty('--c',c);effects.append(e);setTimeout(()=>e.remove(),300)}
+function ring(x,y,c){const e=document.createElement('i');e.className='ring';e.style.cssText=`--x:${x}px;--y:${y}px;--c:${c}`;particles.append(e);setTimeout(()=>e.remove(),580)}
+function burst(x,y,c,n=12){for(let i=0;i<n;i++){const a=Math.PI*2*i/n+rnd(-.28,.28),d=rnd(55,150),emo=Math.random()<.38,e=document.createElement('i');e.className=emo?'emoji':'confetti';e.style.cssText=`--x:${x}px;--y:${y}px;--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px;--spin:${rnd(-360,360)}deg`;if(emo){e.textContent=pick(emojis);e.style.setProperty('--s',rnd(18,34)+'px')}else{e.style.setProperty('--w',rnd(7,15)+'px');e.style.setProperty('--h',rnd(9,23)+'px');e.style.setProperty('--c',Math.random()<.4?c:pick(colors))}particles.append(e);setTimeout(()=>e.remove(),900)}}
+function addSticker(cx,cy,opt={}){const e=document.createElement('div'),m=opt.msg||message(),c=opt.color||pick(colors),shape=opt.shape||pick(shapes),r=opt.r??rnd(-18,18),sc=opt.sc??rnd(.84,1.12);let size=opt.mega||m.length<=5?'mega':m.length>17?'small':'';e.className=`sticker ${shape} ${size} ${opt.stamp?'stamp':''}`;e.style.setProperty('--fill',c);e.textContent=m;stickers.append(e);const rect=e.getBoundingClientRect(),pad=9,x=clamp(cx-rect.width/2+rnd(-38,38),pad,Math.max(pad,innerWidth-rect.width-pad)),y=clamp(cy-rect.height/2+rnd(-30,30),pad,Math.max(pad,innerHeight-rect.height-pad));e.style.cssText+=`;--x:${x}px;--y:${y}px;--r:${r}deg;--sc:${sc};--fill:${c}`;const all=stickers.querySelectorAll('.sticker');if(all.length>55)all[0].remove()}
+function verdict(){const m=pick(verdicts),l=document.createElement('div'),c=document.createElement('div');l.className='verdict';c.className='vcard';c.style.cssText=`--fill:${pick(colors)};--r:${rnd(-7,7)}deg`;c.textContent=m;l.append(c);effects.append(l);fanfare();buzz([35,35,55,25,80]);flash(pick(colors));motion('shake3',300);setTimeout(()=>l.remove(),1150)}
+function chain(x,y){[[-65,-85,.78],[70,15,.88],[-25,100,.72]].forEach((a,i)=>setTimeout(()=>{const px=clamp(x+a[0],30,innerWidth-30),py=clamp(y+a[1],30,innerHeight-30);addSticker(px,py,{sc:a[2],shape:pick(shapes)});pop(.7);burst(px,py,pick(colors),6)},95+i*115))}
+function tap(x,y){count++;if(count===1){hint.classList.add('hide');app.classList.add('awake')}const c=pick(colors);addSticker(x,y,{stamp:count%9===0,mega:count%7===0});ring(x,y,c);burst(x,y,c,count%5===0?18:10);pop(count%5===0?1.25:1);buzz(count%5===0?[30,18,42]:28);if(count%2===0)blob();if(count%4===0)chain(x,y);if(count%6===0)flash(c);if(count%7===0||Math.random()<.055)setTimeout(verdict,170);motion(count%5===0?'shake3':count%3===0?'shake2':'shake1',count%5===0?300:235);if(count%11===0)setTimeout(()=>motion('squish',280),320)}
+function reset(){count=0;last='';stickers.innerHTML='';particles.innerHTML='';effects.innerHTML='';ambient.innerHTML='';app.className='';hint.classList.remove('hide');buzz([25,30,25])}
+app.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();hold=setTimeout(()=>{reset();hold=null},1500);tap(e.clientX,e.clientY)},{passive:false});
+['pointerup','pointercancel'].forEach(t=>app.addEventListener(t,()=>{if(hold){clearTimeout(hold);hold=null}}));app.addEventListener('contextmenu',e=>e.preventDefault());document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+})();
+</script>
 </body>
 </html>
