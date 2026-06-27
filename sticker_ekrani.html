@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Sticker Ekranı</title>
+
+  <style>
+    :root {
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #ffffff;
+      overscroll-behavior: none;
+    }
+
+    body {
+      position: fixed;
+      inset: 0;
+      font-family:
+        Inter,
+        ui-rounded,
+        "SF Pro Rounded",
+        "Arial Rounded MT Bold",
+        system-ui,
+        sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    #app {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #ffffff;
+      isolation: isolate;
+    }
+
+    #sticker-layer {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    #tap-hint {
+      position: absolute;
+      left: 50%;
+      bottom: calc(18px + var(--safe-bottom));
+      z-index: 100000;
+      transform: translateX(-50%);
+      margin: 0;
+      color: #111111;
+      font-size: clamp(17px, 5vw, 22px);
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+      pointer-events: none;
+      transition:
+        opacity 220ms ease,
+        transform 220ms ease;
+    }
+
+    #tap-hint.hidden {
+      opacity: 0;
+      transform: translateX(-50%) translateY(12px) scale(0.94);
+    }
+
+    .sticker {
+      --rotation: 0deg;
+      --scale: 1;
+      --x: 0px;
+      --y: 0px;
+
+      position: absolute;
+      left: 0;
+      top: 0;
+      max-width: min(82vw, 390px);
+      padding: 13px 19px 14px;
+      border: 4px solid #111111;
+      border-radius: 18px;
+      color: #111111;
+      background: #ffffff;
+      box-shadow:
+        0 5px 0 #111111,
+        0 11px 24px rgba(0, 0, 0, 0.15);
+      font-size: clamp(23px, 8vw, 48px);
+      font-weight: 1000;
+      line-height: 0.96;
+      letter-spacing: -0.045em;
+      text-align: center;
+      white-space: nowrap;
+      transform:
+        translate3d(var(--x), var(--y), 0)
+        rotate(var(--rotation))
+        scale(var(--scale));
+      transform-origin: center;
+      will-change: transform;
+      animation: sticker-pop 420ms cubic-bezier(.16, 1.35, .34, 1) both;
+    }
+
+    .sticker::before,
+    .sticker::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      background: inherit;
+      border: inherit;
+      box-shadow: inherit;
+    }
+
+    .sticker::before {
+      width: 22px;
+      height: 22px;
+      left: -12px;
+      top: 20%;
+      border-radius: 7px;
+      transform: rotate(24deg);
+    }
+
+    .sticker::after {
+      width: 18px;
+      height: 18px;
+      right: -10px;
+      bottom: 17%;
+      border-radius: 50%;
+    }
+
+    .sticker.round {
+      border-radius: 999px;
+      padding-inline: 23px;
+    }
+
+    .sticker.burst {
+      border-radius: 7px 24px 8px 26px;
+    }
+
+    .sticker.big {
+      font-size: clamp(30px, 11vw, 62px);
+      padding: 15px 22px 17px;
+    }
+
+    .spark {
+      position: absolute;
+      z-index: 99999;
+      width: 10px;
+      height: 10px;
+      border: 2px solid #111111;
+      border-radius: 3px;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      animation: spark-fly 520ms ease-out forwards;
+    }
+
+    @keyframes sticker-pop {
+      0% {
+        opacity: 0;
+        transform:
+          translate3d(var(--x), var(--y), 0)
+          rotate(calc(var(--rotation) - 10deg))
+          scale(0.18);
+      }
+
+      58% {
+        opacity: 1;
+        transform:
+          translate3d(var(--x), var(--y), 0)
+          rotate(calc(var(--rotation) + 4deg))
+          scale(calc(var(--scale) * 1.12));
+      }
+
+      100% {
+        opacity: 1;
+        transform:
+          translate3d(var(--x), var(--y), 0)
+          rotate(var(--rotation))
+          scale(var(--scale));
+      }
+    }
+
+    @keyframes spark-fly {
+      from {
+        opacity: 1;
+        transform:
+          translate(-50%, -50%)
+          rotate(0deg)
+          scale(1);
+      }
+
+      to {
+        opacity: 0;
+        transform:
+          translate(
+            calc(-50% + var(--dx)),
+            calc(-50% + var(--dy))
+          )
+          rotate(var(--spin))
+          scale(0.25);
+      }
+    }
+
+    #app.shake-1 {
+      animation: shake-1 190ms linear;
+    }
+
+    #app.shake-2 {
+      animation: shake-2 220ms linear;
+    }
+
+    #app.shake-3 {
+      animation: shake-3 250ms linear;
+    }
+
+    @keyframes shake-1 {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
+      20% { transform: translate3d(-5px, 3px, 0) rotate(-0.35deg); }
+      40% { transform: translate3d(5px, -3px, 0) rotate(0.35deg); }
+      60% { transform: translate3d(-3px, -2px, 0) rotate(-0.2deg); }
+      80% { transform: translate3d(3px, 2px, 0) rotate(0.2deg); }
+    }
+
+    @keyframes shake-2 {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
+      15% { transform: translate3d(-8px, 4px, 0) rotate(-0.5deg); }
+      30% { transform: translate3d(7px, -5px, 0) rotate(0.55deg); }
+      45% { transform: translate3d(-6px, -3px, 0) rotate(-0.4deg); }
+      60% { transform: translate3d(6px, 4px, 0) rotate(0.4deg); }
+      75% { transform: translate3d(-3px, 2px, 0) rotate(-0.2deg); }
+      90% { transform: translate3d(2px, -1px, 0) rotate(0.15deg); }
+    }
+
+    @keyframes shake-3 {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
+      12% { transform: translate3d(-11px, 6px, 0) rotate(-0.8deg); }
+      24% { transform: translate3d(10px, -7px, 0) rotate(0.8deg); }
+      36% { transform: translate3d(-9px, -5px, 0) rotate(-0.65deg); }
+      48% { transform: translate3d(9px, 6px, 0) rotate(0.65deg); }
+      60% { transform: translate3d(-7px, 4px, 0) rotate(-0.45deg); }
+      72% { transform: translate3d(6px, -4px, 0) rotate(0.4deg); }
+      84% { transform: translate3d(-3px, 2px, 0) rotate(-0.2deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sticker {
+        animation-duration: 160ms;
+      }
+
+      #app.shake-1,
+      #app.shake-2,
+      #app.shake-3 {
+        animation-duration: 1ms;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main id="app" aria-label="Dokununca sticker oluşturan ekran">
+    <div id="sticker-layer"></div>
+    <p id="tap-hint">EKRANA BAS</p>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const app = document.getElementById("app");
+      const layer = document.getElementById("sticker-layer");
+      const hint = document.getElementById("tap-hint");
+
+      const messages = [
+        "SÜPER",
+        "EFSANEEE",
+        "MÜKEMMEL",
+        "OMGGGGG",
+        "ÇOOOK İYİ",
+        "YOK ARTIK",
+        "İNANILMAZ",
+        "VAYYYY",
+        "AŞIRI İYİ",
+        "10/10",
+        "HARİKA",
+        "ŞAKA MI BU",
+        "OHA",
+        "BAYILDIM",
+        "ÇOK GÜZEL",
+        "EFSANEVİ",
+        "TAM OLDU",
+        "BU NE BÖYLE",
+        "MUAZZAM",
+        "WOWWW"
+      ];
+
+      const colors = [
+        "#FFDD57",
+        "#FF6B9A",
+        "#7BE7FF",
+        "#A8FF78",
+        "#C7A8FF",
+        "#FF9F43",
+        "#F8FF74",
+        "#FF7C7C",
+        "#83FFD0",
+        "#8BB8FF"
+      ];
+
+      const shapes = ["", "round", "burst"];
+      let stickerCount = 0;
+      let lastMessage = "";
+
+      const random = (min, max) => Math.random() * (max - min) + min;
+      const pick = (items) => items[Math.floor(Math.random() * items.length)];
+
+      function getMessage() {
+        let next = pick(messages);
+
+        if (messages.length > 1) {
+          while (next === lastMessage) {
+            next = pick(messages);
+          }
+        }
+
+        lastMessage = next;
+        return next;
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+      }
+
+      function shakeScreen() {
+        const className = `shake-${Math.ceil(random(0, 3))}`;
+
+        app.classList.remove("shake-1", "shake-2", "shake-3");
+        void app.offsetWidth;
+        app.classList.add(className);
+
+        window.setTimeout(() => {
+          app.classList.remove(className);
+        }, 280);
+      }
+
+      function vibrate() {
+        if ("vibrate" in navigator) {
+          navigator.vibrate(stickerCount % 5 === 0 ? [28, 20, 35] : 28);
+        }
+      }
+
+      function makeSparks(x, y, color) {
+        const amount = Math.floor(random(5, 9));
+
+        for (let i = 0; i < amount; i += 1) {
+          const spark = document.createElement("span");
+          const angle = (Math.PI * 2 * i) / amount + random(-0.35, 0.35);
+          const distance = random(45, 95);
+
+          spark.className = "spark";
+          spark.style.left = `${x}px`;
+          spark.style.top = `${y}px`;
+          spark.style.background = color;
+          spark.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+          spark.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+          spark.style.setProperty("--spin", `${random(-180, 180)}deg`);
+
+          layer.appendChild(spark);
+          window.setTimeout(() => spark.remove(), 600);
+        }
+      }
+
+      function createSticker(clientX, clientY) {
+        stickerCount += 1;
+
+        if (stickerCount === 1) {
+          hint.classList.add("hidden");
+        }
+
+        const sticker = document.createElement("div");
+        const message = getMessage();
+        const color = pick(colors);
+        const shape = pick(shapes);
+        const rotation = random(-17, 17);
+        const scale = random(0.86, 1.12);
+
+        sticker.className = `sticker ${shape} ${message.length <= 5 ? "big" : ""}`.trim();
+        sticker.textContent = message;
+        sticker.style.background = color;
+        sticker.style.zIndex = String(stickerCount);
+
+        layer.appendChild(sticker);
+
+        const rect = sticker.getBoundingClientRect();
+        const padding = 10;
+        const bottomReserved = 18;
+        const maxX = window.innerWidth - rect.width - padding;
+        const maxY = window.innerHeight - rect.height - bottomReserved;
+
+        const jitterX = random(-34, 34);
+        const jitterY = random(-26, 26);
+        const x = clamp(clientX - rect.width / 2 + jitterX, padding, Math.max(padding, maxX));
+        const y = clamp(clientY - rect.height / 2 + jitterY, padding, Math.max(padding, maxY));
+
+        sticker.style.setProperty("--x", `${x}px`);
+        sticker.style.setProperty("--y", `${y}px`);
+        sticker.style.setProperty("--rotation", `${rotation}deg`);
+        sticker.style.setProperty("--scale", scale.toFixed(2));
+
+        makeSparks(clientX, clientY, color);
+        shakeScreen();
+        vibrate();
+      }
+
+      app.addEventListener("pointerdown", (event) => {
+        if (event.pointerType === "mouse" && event.button !== 0) {
+          return;
+        }
+
+        event.preventDefault();
+        createSticker(event.clientX, event.clientY);
+      }, { passive: false });
+
+      app.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+      });
+
+      document.addEventListener("dblclick", (event) => {
+        event.preventDefault();
+      }, { passive: false });
+    })();
+  </script>
+</body>
+</html>
